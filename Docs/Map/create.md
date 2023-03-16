@@ -18,19 +18,19 @@ It will also make a folder with all assets your map depends on, with prefixed na
 
 
 Now you need to open Godot's export menu
-![[Pasted image 20230316140408.png]]
+![Export button](Pasted image 20230316140408.png)
 Select "Export"
 You will get this window
 
-![[Pasted image 20230316145813.png]]
+![Export menu](Pasted image 20230316145813.png)
 Click on the windows export option then navigate to the resources tab
-![[Pasted image 20230316145841.png]]
+![Resources tab](Pasted image 20230316145841.png)
 
 Then tick ONLY the MapPck folder
-![[Pasted image 20230316145905.png]]
+![Ticked](Pasted image 20230316145905.png)
 
 Press Export PCK/Zip
-![[Pasted image 20230316145933.png]]
+![Button](Pasted image 20230316145933.png)
 
 Export your map as a zip file with the same name as your main map scene. e.g. for a map called parkour export as parkour.tscn
 
