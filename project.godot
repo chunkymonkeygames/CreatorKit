@@ -1,0 +1,37 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[addons]
+
+instance_dock/scenes=[{
+"name": "prefabs",
+"scenes": [{
+"custom_texture": "res://MapAssets/kenney_prototype_resources/textures/dark/texture_04.png",
+"scene": "res://MapAssets/cube/black.tscn"
+}, {
+"custom_texture": "res://MapAssets/kenney_prototype_resources/textures/orange/texture_05.png",
+"scene": "res://MapAssets/cube/orange.tscn"
+}],
+"scroll": 0
+}]
+
+[application]
+
+config/name="FPSCreatorKit"
+config/features=PackedStringArray("4.0", "Forward Plus")
+config/icon="res://icon.svg"
+
+[dotnet]
+
+project/assembly_name="FPSCreatorKit"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/InstanceDock/plugin.cfg", "res://addons/nakostool/plugin.cfg")

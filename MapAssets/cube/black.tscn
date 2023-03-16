@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://bd88oov4r3wwu"]
+
+[ext_resource type="PackedScene" uid="uid://3maviy4magr" path="res://MapAssets/kenney_prototype_resources/cube.tscn" id="1_1ayfr"]
+[ext_resource type="Texture2D" uid="uid://bjki20y2o2s7c" path="res://MapAssets/kenney_prototype_resources/textures/dark/texture_01.png" id="2_oejdc"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_24dit"]
+albedo_texture = ExtResource("2_oejdc")
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[node name="Cube" instance=ExtResource("1_1ayfr")]
+
+[node name="Mesh" parent="." index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_24dit")
