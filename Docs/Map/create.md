@@ -14,7 +14,7 @@ Then go to the CreatorTools menu and press Build map
 This will create a copy of your map with all instantiated scenes "un-instantiated" so that the whole map is in a single scene file.  
 It will also make a folder with all assets your map depends on, with prefixed names to avoid incompatibilities with other maps.  
 
-> Note that this may be buggy and may not work with very complex scenes and resource  
+> Note that this may be buggy and may not work with very complex scenes and resources  
 
 
 Now you need to open Godot's export menu
