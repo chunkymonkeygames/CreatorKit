@@ -68,7 +68,6 @@ func scanRes(node: Object, prefix):
 			else:
 				nres.take_over_path("res://MapPck/Assets/" + prefix + str(resc) + ".tres")
 				ResourceSaver.save(nres)
-				print("nv  ", nres.resource_path, "   ov  ",value.resource_path)
 			node.set(p["name"], nres)
 
 func doNode(node, scene):
@@ -95,17 +94,30 @@ func _run():
 	get_editor_interface().open_scene_from_path(oldpath)
 
 
+
+
+
+
 var btm
 
 func _enter_tree():
 	var ctrl = Control.new()
 	ctrl.custom_minimum_size.y = 100
+	
 	var btn = Button.new()
-	btn.text = "Build"
+	btn.text = "Build map"
 	btn.pressed.connect(_run)
 	ctrl.add_child(btn)
+	
+	var btn2 = Button.new()
+	btn2.text = "Help"
+	btn.position.y = 30
+	btn2.pressed.connect(help)
+	ctrl.add_child(btn2)
 	btm = add_control_to_bottom_panel(ctrl, "CreatorTools")
 
+func help():
+	OS.shell_open(ProjectSettings.globalize_path("res://Docs/"))
 
 func _exit_tree():
 	btm.queue_free()
