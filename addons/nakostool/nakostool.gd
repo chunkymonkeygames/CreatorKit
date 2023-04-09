@@ -72,16 +72,42 @@ func _run():
 	var doc = GLTFDocument.new()
 	var state = GLTFState.new()
 	doc.append_from_scene(ccurrent_scene, state)
-	var glbpath = "res://MapPck" + oldpath.left(len(oldpath)-5).right(-5) + ".glb"
+	var mapname = oldpath.left(len(oldpath)-5).right(-5)
+	print(mapname)
+	var glbpath = "res://MapPck" + mapname + ".glb"
 	print(glbpath)
 	FileAccess.open("res://MapPck/.gdignore", FileAccess.WRITE)
-	recursively_delete_dir_absolute("res://MapPck/scenes")
 	doc.write_to_filesystem(state, glbpath) #write glb
-	OS.shell_open(ProjectSettings.globalize_path("res://MapPck/"))
+
 	get_editor_interface().get_open_scenes().remove_at(idx)
 	get_editor_interface().open_scene_from_path(oldpath)
+	var mapdata: MapInfo = current_scene.get_meta("MapInfo")
+	# ok, now we need to make a metadata file for the map
+	var metadata = {
+		# global section
+		"meta_ver": "1.0",
+		"content_type": "map",
+		
+		"map": {
+			"name": mapdata.level_name,
+			"version": mapdata.level_ver,
+			"tags": mapdata.level_tags
+		}
+	}
+	var md = FileAccess.open("res://MapPck" + mapname + ".meta", FileAccess.WRITE)
+	GDToml.write_toml_file(md, metadata)
+	md.close()
+	# zip it
+	var zp = ZIPPacker.new()
+	zp.open("res://MapPck/" + mapname + ".zip")
+	# for each file
+	for i in [glbpath, "res://MapPck" + mapname + ".meta"]:
+		zp.start_file(i.get_file())
+		zp.write_file(FileAccess.get_file_as_bytes(i))
+		zp.close_file()
+	zp.close()
 	get_editor_interface().get_file_system_dock().navigate_to_path("/") # Reload FSDock maybe idk
-	
+	OS.shell_open(ProjectSettings.globalize_path("res://MapPck/"))
 
 
 
