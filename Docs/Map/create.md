@@ -1,44 +1,29 @@
-Creating a map is quite an easy process however you must pay extra attention when exporting the map.  
+Creating a map is quite an easy process.  
 
 
-To begin creating a map, create a 3D scene in the root of the creator kit project in godot.  
-There will be some pre-made assets in the MapAssets folder and the prefabs menu will have some prefabs you can drag into your scene.  
+To begin creating a map, open the creatortools tab and enter the name of your map in the text box  
+Then press New Level  
+You can now edit your map.  
+**Do not add scripts to your map or material settings not compatible with gltf as they will not be preserved**  
 
-**Do not add scripts to your map or any of its resources as the game will refuse to load your map**  
+
+## Map settings
+* Expand your scenes rootnode (the Node3D at the top of the nodelist)  
+* Expand the metadata tab
+* Click on the MapInfo resource object
+* Change the level name and level version
+* Add tags if needed
+
 
 ## Exporting
-To export your map, there are a couple of steps
+To export your map, there are only a couple of steps
 
 First, open your main map scene in godot and make sure it is the currently open scene.  
 Then go to the CreatorTools menu and press Build map  
-This will create a copy of your map with all instantiated scenes "un-instantiated" so that the whole map is in a single scene file.  
-It will also make a folder with all assets your map depends on, with prefixed names to avoid incompatibilities with other maps.  
+This will compile your map to gltf after expanding all packed scenes in the map
 
-> Note that this may be buggy and may not work with very complex scenes and resources  
+> Note that this may be buggy and may not work with complex scenes and resources  
 
 
-Now you need to open Godot's export menu
+The exported folder will be opened in file explorer.
 
-![Export button](Pasted image 20230316140408.png)
-
-Select "Export"  
-You will get this window  
-
-![Export menu](Pasted image 20230316145813.png)  
-
-Click on the windows export option then navigate to the resources tab  
-
-![Resources tab](Pasted image 20230316145841.png)  
-
-Then tick ONLY the MapPck folder  
-
-![Ticked](Pasted image 20230316145905.png)  
-
-Press Export PCK/Zip  
-
-![Button](Pasted image 20230316145933.png)  
-
-Export your map as a zip file with the same name as your main map scene. e.g. for a map called parkour export as parkour.tscn  
-
-In file explorer, change the extension of the export file from .zip to .nmap  
-Aaand you're done!
