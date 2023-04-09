@@ -27,14 +27,6 @@ func recursively_delete_dir_absolute(folder: String) -> bool:
 		return true
 	return false
 	
-var ascii = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-func get_prefix(node: Node, scene: Node):
-	var rand = ""
-	for i in range(5):
-		rand += ascii[randi_range(0, len(ascii)-1)]
-	var sname = scene.scene_file_path.left(-5).split("/")
-	sname = sname[len(sname)-1]
-	return "map-" + sname + "-" + node.name + "-" + rand + "-"
 
 
 func makeLocal(node):
@@ -46,52 +38,51 @@ func makeLocal(node):
 		makeLocal(child)
 	
 
-var covered_obj = []
-var resc = 0
 
-func scanRes(node: Object, prefix):
-	if node in covered_obj:
-		return
-	covered_obj.append(node)
-	var props = node.get_property_list()
-	for p in props:
-		if p["type"] == 24:
-			var value = node.get(p["name"])
-			if value == null or not value is Resource:
-				continue
-			scanRes(value, prefix)
-			var nres: Resource = value.duplicate()
-			resc += 1
-			
-			if "::" in value.resource_path and value.resource_path != "":
-				pass
-			else:
-				nres.take_over_path("res://MapPck/Assets/" + prefix + str(resc) + ".tres")
-				ResourceSaver.save(nres)
-			node.set(p["name"], nres)
 
-func doNode(node, scene):
-	scanRes(node, get_prefix(node, scene))
-	for ch in node.get_children():
-		doNode(ch, scene)
 
 func _run():
+	err.text = ""
 	var current_scene = get_editor_interface().get_edited_scene_root()
+	if (!current_scene) or (current_scene.scene_file_path == ""):
+		err.text = "Open a scene"
+		return
+	if current_scene.scene_file_path.contains("MapPck"):
+		err.text = "Cannot build an exported scene"
+		return
+	if !current_scene.has_meta("MapInfo"):
+		err.text = "MapInfo required. Press help and follow guide."
+		return
+	if current_scene.get_meta("MapInfo").level_ver == "CHANGEME":
+		err.text = "Setup MapInfo. Press help and follow guide."
+		return
+	
 	var oldpath = current_scene.scene_file_path
 	for child in current_scene.get_children():
 		makeLocal(child)
 	recursively_delete_dir_absolute("res://MapPck")
 	DirAccess.open("res://").make_dir("MapPck")
-	DirAccess.open("res://").make_dir("MapPck/Assets")
-	get_editor_interface().save_scene_as("res://MapPck" + current_scene.scene_file_path.left(len(current_scene.scene_file_path)-5).right(-5) + ".tscn")
-	get_editor_interface().reload_scene_from_path(current_scene.scene_file_path)
-	covered_obj = []
-	resc = 0
-	# bring all resources into assets
-	doNode(get_editor_interface().get_edited_scene_root(), get_editor_interface().get_edited_scene_root())
-	get_editor_interface().save_scene()
-	get_editor_interface().get_file_system_dock().navigate_to_path("/") # Reload FSDock maybe idk
+	DirAccess.open("res://").make_dir("MapPck/scenes")
+	var sp =  "res://MapPck/scenes" + current_scene.scene_file_path.left(len(current_scene.scene_file_path)-5).right(-5) + ".tscn"
+	get_editor_interface().save_scene_as(sp)
+	var idx = get_editor_interface().get_open_scenes().find(sp)
+	print(idx)
+	# ok, now we need to turn this scene into a glb
+	var ccurrent_scene = get_editor_interface().get_edited_scene_root()
+	var doc = GLTFDocument.new()
+	var state = GLTFState.new()
+	doc.append_from_scene(ccurrent_scene, state)
+	var glbpath = "res://MapPck" + oldpath.left(len(oldpath)-5).right(-5) + ".glb"
+	print(glbpath)
+	FileAccess.open("res://MapPck/.gdignore", FileAccess.WRITE)
+	recursively_delete_dir_absolute("res://MapPck/scenes")
+	doc.write_to_filesystem(state, glbpath) #write glb
+	OS.shell_open(ProjectSettings.globalize_path("res://MapPck/"))
+	get_editor_interface().get_open_scenes().remove_at(idx)
 	get_editor_interface().open_scene_from_path(oldpath)
+	get_editor_interface().get_file_system_dock().navigate_to_path("/") # Reload FSDock maybe idk
+	
+
 
 
 
@@ -99,7 +90,8 @@ func _run():
 
 
 var btm
-
+var le3
+var err 
 func _enter_tree():
 	var ctrl = Control.new()
 	ctrl.custom_minimum_size.y = 100
@@ -109,15 +101,45 @@ func _enter_tree():
 	btn.pressed.connect(_run)
 	ctrl.add_child(btn)
 	
+	err = Label.new()
+	err.text = "status text"
+	err.position.x = 100
+	ctrl.add_child(err)
+	
 	var btn2 = Button.new()
 	btn2.text = "Help"
-	btn.position.y = 30
+	btn2.position.y = 30
 	btn2.pressed.connect(help)
 	ctrl.add_child(btn2)
+	
+	var btn3 = Button.new()
+	btn3.text = "New level"
+	btn3.position.y = 60
+	btn3.pressed.connect(new)
+	ctrl.add_child(btn3)
+	
+	le3 = LineEdit.new()
+	le3.placeholder_text = "level name"
+	le3.size.x = 400
+	le3.position.y = 60
+	le3.position.x = 100
+	ctrl.add_child(le3)
+	
+	
 	btm = add_control_to_bottom_panel(ctrl, "CreatorTools")
 
 func help():
-	OS.shell_open(ProjectSettings.globalize_path("res://Docs/"))
+	OS.shell_open("https://google.com")
+
+func new():
+	var name = le3.text + ".tscn"
+	var scn = preload("res://addons/nakostool/template.tscn").instantiate()
+	scn.scene_file_path = "res://" + name
+	scn.set_meta("MapInfo", scn.get_meta("MapInfo").duplicate())
+	var ps = PackedScene.new()
+	ps.pack(scn)
+	ResourceSaver.save(ps, scn.scene_file_path)
+	get_editor_interface().open_scene_from_path(scn.scene_file_path)
 
 func _exit_tree():
 	btm.queue_free()
