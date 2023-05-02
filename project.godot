@@ -12,13 +12,7 @@ config_version=5
 
 instance_dock/scenes=[{
 "name": "prefabs",
-"scenes": [{
-"custom_texture": "res://MapAssets/kenney_prototype_resources/textures/dark/texture_04.png",
-"scene": "res://MapAssets/cube/black.tscn"
-}, {
-"custom_texture": "res://MapAssets/kenney_prototype_resources/textures/orange/texture_05.png",
-"scene": "res://MapAssets/cube/orange.tscn"
-}],
+"scenes": [],
 "scroll": 0
 }]
 

@@ -34,15 +34,100 @@ func makeLocal(node):
 	if node.scene_file_path != "" or node.owner != current_scene:
 		node.scene_file_path  = ""
 		node.owner = current_scene
-	for child in node. 	get_children():
+	for child in node.get_children():
 		makeLocal(child)
 	
 
+func propagateGroups(node: Node, groups):
+	var ngroups = groups + node.get_groups()
+	for g in groups:
+		node.add_to_group(g, true)
+	for child in node.get_children():
+		propagateGroups(child, ngroups)
 
+
+
+func generateCollision(node: Node):
+	if !node.is_in_group("nocollide"):
+		if node is MeshInstance3D:
+			node.create_trimesh_collision() # generate collision. 
+	for child in node.get_children():
+		generateCollision(child)
+
+func jsgWriteVec3PackedInArray(jsg: JavaScriptGenerator, vec: Vector3):
+	for i in [vec.x, vec.y, vec.z]:
+		jsg.add_elem(str(i))
+
+func jsgWriteTransform(jsg: JavaScriptGenerator, trans: Transform3D):
+	jsg.add_array()
+	for vec in [trans.basis.x, trans.basis.y, trans.basis.z]:
+		jsgWriteVec3PackedInArray(jsg, vec)
+	jsgWriteVec3PackedInArray(jsg, trans.origin)
+	jsg.end_array()
+
+func jsgWriteVec3(jsg: JavaScriptGenerator, vec: Vector3):
+	jsg.add_array()
+	jsgWriteVec3PackedInArray(jsg, vec)
+	jsg.end_array()
+
+func jsgWriteVec3Array(jsg: JavaScriptGenerator, arr: PackedVector3Array):
+	jsg.add_array()
+	for vec in arr:
+		jsgWriteVec3(jsg, vec)
+		jsg.add_elem("")
+	jsg.end_array()
+
+func generateJSCollision(node: Node, jsg: JavaScriptGenerator):
+	if node is CollisionShape3D:
+		var sh = node.shape
+		if sh is BoxShape3D:
+			jsg.add_call("MapBuilder.create_box_col")
+			jsgWriteTransform(jsg, node.global_transform)
+			jsg.next_param()
+			jsgWriteVec3(jsg, sh.size)
+			jsg.end_call()
+			jsg.end()
+		if sh is ConcavePolygonShape3D:
+			jsg.add_call("MapBuilder.create_concave_col")
+			jsgWriteTransform(jsg, node.global_transform)
+			jsg.next_param()
+			jsgWriteVec3Array(jsg, sh.get_faces())
+			jsg.end_call()
+			jsg.end()
+		if sh is CylinderShape3D or sh is CapsuleShape3D:
+			if sh is CylinderShape3D:
+				jsg.add_call("MapBuilder.create_cylinder_col")
+			else:
+				jsg.add_call("MapBuilder.create_capsule_col")
+			jsgWriteTransform(jsg, node.global_transform)
+			jsg.next_param()
+			jsg.append(str(sh.height))
+			jsg.next_param()
+			jsg.append(str(sh.radius))
+			jsg.end_call()
+			jsg.end()
+		if sh is SphereShape3D:
+			jsg.add_call("MapBuilder.create_sphere_col")
+			jsgWriteTransform(jsg, node.global_transform)
+			jsg.next_param()
+			jsg.append(str(sh.radius))
+			jsg.end_call()
+			jsg.end()
+		if sh is WorldBoundaryShape3D:
+			jsg.add_call("MapBuilder.create_boundary_col")
+			jsgWriteTransform(jsg, node.global_transform)
+			jsg.next_param()
+			jsg.add_array()
+			for i in [sh.plane.x, sh.plane.y, sh.plane.z, sh.plane.d]:
+				jsg.add_elem(i)
+			jsg.end_call()
+			jsg.end()
+	for child in node.get_children():
+		generateJSCollision(child, jsg)
 
 
 func _run():
-	err.text = ""
+	err.text = "Expanding subscenes..."
 	var current_scene = get_editor_interface().get_edited_scene_root()
 	if (!current_scene) or (current_scene.scene_file_path == ""):
 		err.text = "Open a scene"
@@ -60,13 +145,39 @@ func _run():
 	var oldpath = current_scene.scene_file_path
 	for child in current_scene.get_children():
 		makeLocal(child)
+
+	err.text = "Propagating groups..."
+	# after expanding all packed scenes, lets make groups propagate to children of a node
+	propagateGroups(get_editor_interface().get_edited_scene_root(), [])
+	
+	err.text = "Generating collision on MeshInstances..."
+	# after ensuring groups are propagated, we can safely generate collision and staticbodies
+	generateCollision(get_editor_interface().get_edited_scene_root())
+	
+	err.text = "Generating JS collision code"
+	var jsg = JavaScriptGenerator.new()
+	jsg.add_comment("MACHINE GENERATED CODE. DO NOT EDIT")
+	jsg.add_call("nakos.RequestModuleInRuntime")
+	jsg.append('"MapBuilder"')
+	jsg.end_call()
+	jsg.end()
+	jsg.add_new_line()
+	generateJSCollision(get_editor_interface().get_edited_scene_root(), jsg)
+	
+	
+	
+	err.text = "Saving scene..."
 	recursively_delete_dir_absolute("res://MapPck")
 	DirAccess.open("res://").make_dir("MapPck")
 	DirAccess.open("res://").make_dir("MapPck/scenes")
 	var sp =  "res://MapPck/scenes" + current_scene.scene_file_path.left(len(current_scene.scene_file_path)-5).right(-5) + ".tscn"
 	get_editor_interface().save_scene_as(sp)
+	
+	
 	var idx = get_editor_interface().get_open_scenes().find(sp)
 	print(idx)
+	
+	err.text = "Exporting gltf..."
 	# ok, now we need to turn this scene into a glb
 	var ccurrent_scene = get_editor_interface().get_edited_scene_root()
 	var doc = GLTFDocument.new()
@@ -76,7 +187,7 @@ func _run():
 	print(mapname)
 	var glbpath = "res://MapPck" + mapname + ".glb"
 	print(glbpath)
-	FileAccess.open("res://MapPck/.gdignore", FileAccess.WRITE)
+	FileAccess.open("res://MapPck/.gdignore", FileAccess.WRITE).close()
 	doc.write_to_filesystem(state, glbpath) #write glb
 
 	get_editor_interface().get_open_scenes().remove_at(idx)
@@ -91,12 +202,20 @@ func _run():
 		"map": {
 			"name": mapdata.level_name,
 			"version": mapdata.level_ver,
-			"tags": mapdata.level_tags
+			"tags": mapdata.level_tags,
+			"js": mapname + ".load.js"
 		}
 	}
+	
+	var jmd = FileAccess.open("res://MapPck" + mapname + ".load.js", FileAccess.WRITE)
+	jmd.store_string(jsg.get_code())
+	jmd.close()
+	
 	var md = FileAccess.open("res://MapPck" + mapname + ".meta", FileAccess.WRITE)
 	GDToml.write_toml_file(md, metadata)
 	md.close()
+	
+	err.text = "Compressing"
 	# zip it
 	var zp = ZIPPacker.new()
 	zp.open("res://MapPck/" + mapname + ".zip")
@@ -106,10 +225,13 @@ func _run():
 		zp.write_file(FileAccess.get_file_as_bytes(i))
 		zp.close_file()
 	zp.close()
+	
+	
+	
 	get_editor_interface().get_file_system_dock().navigate_to_path("/") # Reload FSDock maybe idk
 	OS.shell_open(ProjectSettings.globalize_path("res://MapPck/"))
 
-
+	err.text = "Done"
 
 
 

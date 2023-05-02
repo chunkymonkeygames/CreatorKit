@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3 uid="uid://cnh5kjehfaack"]
+
+[ext_resource type="Script" path="res://addons/nakostool/SceneInfoRes.gd" id="1_8y0d2"]
+
+[sub_resource type="Resource" id="Resource_kv2il"]
+script = ExtResource("1_8y0d2")
+level_name = "nak"
+level_tags = Array[String]([])
+level_ver = "ata"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fq25c"]
+transparency = 1
+albedo_color = Color(0, 0, 0, 0.831373)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1tark"]
+material = SubResource("StandardMaterial3D_fq25c")
+size = Vector3(1, 3.547, 6.04)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f0hcc"]
+albedo_color = Color(0.976471, 0.501961, 0, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_uqa32"]
+material = SubResource("StandardMaterial3D_f0hcc")
+size = Vector2(13.915, 13.159)
+
+[node name="Node3D" type="Node3D"]
+metadata/MapInfo = SubResource("Resource_kv2il")
+
+[node name="NoCollideWall" type="MeshInstance3D" parent="." groups=["nocollide"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.86675, 0)
+mesh = SubResource("BoxMesh_1tark")
+
+[node name="Node3D" type="Node3D" parent="NoCollideWall"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_uqa32")

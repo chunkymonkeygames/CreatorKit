@@ -9,5 +9,4 @@ level_tags = Array[String]([])
 level_ver = "CHANGEME"
 
 [node name="Node3D" type="Node3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6)
 metadata/MapInfo = SubResource("Resource_te1fe")
