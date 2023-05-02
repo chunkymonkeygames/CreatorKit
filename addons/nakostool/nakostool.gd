@@ -220,7 +220,7 @@ func _run():
 	var zp = ZIPPacker.new()
 	zp.open("res://MapPck/" + mapname + ".zip")
 	# for each file
-	for i in [glbpath, "res://MapPck" + mapname + ".meta"]:
+	for i in [glbpath, "res://MapPck" + mapname + ".meta", "res://MapPck" + mapname + ".load.js"]:
 		zp.start_file(i.get_file())
 		zp.write_file(FileAccess.get_file_as_bytes(i))
 		zp.close_file()
