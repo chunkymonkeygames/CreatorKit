@@ -120,6 +120,7 @@ func generateJSCollision(node: Node, jsg: JavaScriptGenerator):
 			jsg.add_array()
 			for i in [sh.plane.x, sh.plane.y, sh.plane.z, sh.plane.d]:
 				jsg.add_elem(i)
+			jsg.end_array()
 			jsg.end_call()
 			jsg.end()
 	for child in node.get_children():
