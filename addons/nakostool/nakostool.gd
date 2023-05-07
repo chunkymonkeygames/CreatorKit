@@ -120,6 +120,7 @@ func generateJSCollision(node: Node, jsg: JavaScriptGenerator):
 			jsg.add_array()
 			for i in [sh.plane.x, sh.plane.y, sh.plane.z, sh.plane.d]:
 				jsg.add_elem(i)
+			jsg.end_array()
 			jsg.end_call()
 			jsg.end()
 	for child in node.get_children():
@@ -170,12 +171,10 @@ func _run():
 	recursively_delete_dir_absolute("res://MapPck")
 	DirAccess.open("res://").make_dir("MapPck")
 	DirAccess.open("res://").make_dir("MapPck/scenes")
-	var sp =  "res://MapPck/scenes" + current_scene.scene_file_path.left(len(current_scene.scene_file_path)-5).right(-5) + ".tscn"
-	get_editor_interface().save_scene_as(sp)
+
 	
 	
-	var idx = get_editor_interface().get_open_scenes().find(sp)
-	print(idx)
+
 	
 	err.text = "Exporting gltf..."
 	# ok, now we need to turn this scene into a glb
@@ -189,10 +188,11 @@ func _run():
 	print(glbpath)
 	FileAccess.open("res://MapPck/.gdignore", FileAccess.WRITE).close()
 	doc.write_to_filesystem(state, glbpath) #write glb
-
-	get_editor_interface().get_open_scenes().remove_at(idx)
-	get_editor_interface().open_scene_from_path(oldpath)
-	var mapdata: MapInfo = current_scene.get_meta("MapInfo")
+	for scn in get_editor_interface().get_open_scenes():
+		print(scn)
+	get_editor_interface().reload_scene_from_path(oldpath)
+	ccurrent_scene = get_editor_interface().get_edited_scene_root()
+	var mapdata: MapInfo = ccurrent_scene.get_meta("MapInfo")
 	# ok, now we need to make a metadata file for the map
 	var metadata = {
 		# global section
