@@ -26,7 +26,7 @@ func recursively_delete_dir_absolute(folder: String) -> bool:
 			return false
 		return true
 	return false
-	
+
 
 
 func makeLocal(node):
@@ -126,6 +126,19 @@ func generateJSCollision(node: Node, jsg: JavaScriptGenerator):
 	for child in node.get_children():
 		generateJSCollision(child, jsg)
 
+func generateJSEnvironment(node: Node, jsg: JavaScriptGenerator):
+	var we: WorldEnvironment = node.get_node("WorldEnvironment")
+	if is_instance_valid(we):
+		var env: Environment = we.environment
+		assert(env.background_mode == Environment.BG_SKY)
+		var sky: Sky = env.sky
+		var mat = sky.sky_material
+		var ee = EditorExpose.new()
+		print(ee.find_resource_conversion_plugin(mat))
+		
+		print("res")
+	else:
+		push_warning("Error: No worldenvironment provided. May use default")
 
 func _run():
 	err.text = "Expanding subscenes..."
@@ -164,7 +177,7 @@ func _run():
 	jsg.end()
 	jsg.add_new_line()
 	generateJSCollision(get_editor_interface().get_edited_scene_root(), jsg)
-	
+	generateJSEnvironment(get_editor_interface().get_edited_scene_root(), jsg)
 	
 	
 	err.text = "Saving scene..."
@@ -188,8 +201,6 @@ func _run():
 	print(glbpath)
 	FileAccess.open("res://MapPck/.gdignore", FileAccess.WRITE).close()
 	doc.write_to_filesystem(state, glbpath) #write glb
-	for scn in get_editor_interface().get_open_scenes():
-		print(scn)
 	get_editor_interface().reload_scene_from_path(oldpath)
 	ccurrent_scene = get_editor_interface().get_edited_scene_root()
 	var mapdata: MapInfo = ccurrent_scene.get_meta("MapInfo")
@@ -292,10 +303,8 @@ func new():
 func _exit_tree():
 	btm.queue_free()
 
-
 func _get_plugin_name():
 	return "Creator Tools"
-
 
 func _get_plugin_icon():
 	# Must return some kind of Texture for the icon.

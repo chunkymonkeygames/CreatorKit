@@ -42,5 +42,8 @@ func generate_lambda() -> String:
 	var code := code_builder
 	return "() => {" + code + "}"
 
+func write_multiline(text):
+	code_builder += "`" + text.replace("`", "\\`").replace("${", "\\${") + "`"
+
 func get_code() -> String:
 	return code_builder
