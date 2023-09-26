@@ -152,7 +152,7 @@ func generateJSEnvironment(node: Node, jsg: JavaScriptGenerator):
 			var code = shad.code
 			jsg.add_call("MapBuilder.set_sky_shader")
 			jsg.add_call("Nakos.load_resource")
-			jsg.append('"sky_shader.glsl"')
+			jsg.append('"./sky_shader.glsl"')
 			jsg.end_call()
 			jsg.end_call()
 			jsg.end()
