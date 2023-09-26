@@ -127,16 +127,40 @@ func generateJSCollision(node: Node, jsg: JavaScriptGenerator):
 		generateJSCollision(child, jsg)
 
 func generateJSEnvironment(node: Node, jsg: JavaScriptGenerator):
+	jsg.add_call("MapBuilder.create_environment")
+	jsg.end_call()
+	jsg.end()
 	var we: WorldEnvironment = node.get_node("WorldEnvironment")
 	if is_instance_valid(we):
 		var env: Environment = we.environment
 		assert(env.background_mode == Environment.BG_SKY)
 		var sky: Sky = env.sky
 		var mat = sky.sky_material
-		var ee = EditorExpose.new()
-		print(ee.find_resource_conversion_plugin(mat))
-		
-		print("res")
+		if not mat is ShaderMaterial:
+			var plugs = get_editor_interface().find_resource_conversion_plugin(mat)
+			var plug
+			print("Mat: ", mat)
+			for p in plugs:
+				if p.converts_to() == "ShaderMaterial":
+					plug = p
+					break
+			if plug == null:
+				push_warning("Error: Could not convert sky material")
+				return
+			mat = plug.convert(mat)
+			var shad: Shader = mat.shader
+			var code = shad.code
+			jsg.add_call("MapBuilder.set_sky_shader")
+			jsg.add_call("Nakos.load_resource")
+			jsg.append('"sky_shader.glsl"')
+			jsg.end_call()
+			jsg.end_call()
+			jsg.end()
+			var fa = FileAccess.open("res://MapPck/sky_shader.glsl", FileAccess.WRITE)
+			fa.store_string(code)
+			fa.close()
+		else:
+			push_warning("Error: Could not convert sky material")
 	else:
 		push_warning("Error: No worldenvironment provided. May use default")
 
@@ -177,7 +201,6 @@ func _run():
 	jsg.end()
 	jsg.add_new_line()
 	generateJSCollision(get_editor_interface().get_edited_scene_root(), jsg)
-	generateJSEnvironment(get_editor_interface().get_edited_scene_root(), jsg)
 	
 	
 	err.text = "Saving scene..."
@@ -187,6 +210,7 @@ func _run():
 
 	
 	
+	generateJSEnvironment(get_editor_interface().get_edited_scene_root(), jsg)
 
 	
 	err.text = "Exporting gltf..."

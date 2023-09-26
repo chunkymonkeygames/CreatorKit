@@ -19,7 +19,7 @@ instance_dock/scenes=[{
 [application]
 
 config/name="FPSCreatorKit"
-config/features=PackedStringArray("4.0", "Forward Plus")
+config/features=PackedStringArray("4.1", "Forward Plus")
 config/icon="res://icon.svg"
 
 [dotnet]

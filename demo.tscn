@@ -1,7 +1,6 @@
-[gd_scene load_steps=11 format=3 uid="uid://cnh5kjehfaack"]
+[gd_scene load_steps=10 format=3 uid="uid://cnh5kjehfaack"]
 
 [ext_resource type="Script" path="res://addons/nakostool/SceneInfoRes.gd" id="1_8y0d2"]
-[ext_resource type="Shader" path="res://demo.gdshader" id="2_xilfh"]
 
 [sub_resource type="Resource" id="Resource_kv2il"]
 script = ExtResource("1_8y0d2")
@@ -24,11 +23,10 @@ albedo_color = Color(0.976471, 0.501961, 0, 1)
 material = SubResource("StandardMaterial3D_f0hcc")
 size = Vector2(13.915, 13.159)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_4hnhp"]
-shader = ExtResource("2_xilfh")
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_ourcr"]
 
 [sub_resource type="Sky" id="Sky_lolqg"]
-sky_material = SubResource("ShaderMaterial_4hnhp")
+sky_material = SubResource("PhysicalSkyMaterial_ourcr")
 
 [sub_resource type="Environment" id="Environment_x8r5g"]
 background_mode = 2
